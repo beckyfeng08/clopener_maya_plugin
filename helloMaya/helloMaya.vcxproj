@@ -105,7 +105,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NT_PLUGIN</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Program Files\Autodesk\Maya2024\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\fengl\Desktop\cis6600\helloMaya\eigen-3.4.1;C:\Users\fengl\Desktop\cis6600\helloMaya\libigl\include;C:\Program Files\Autodesk\Maya2024\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

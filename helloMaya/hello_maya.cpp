@@ -1,6 +1,7 @@
 #include "hello_maya.h"
 #include <maya/MFnPlugin.h>
 #include <maya/MGlobal.h>
+#include <igl/massmatrix.h>
 // define EXPORT for exporting dll functions
 #ifdef _WIN32
 #define EXPORT __declspec(dllexport)
