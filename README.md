@@ -11,6 +11,8 @@ To clone:
 Checkout to libigl 2.4.0
 `cd clopener_maya_plugin; cd libigl; git checkout v2.4.0`
 
+## How to build the plugin file 
+
 Open Visual Studio 2022, and open the project via its .sln file. Under the Solution Explorer, right click on "helloMaya", navigate to "Properties".
 Under Configuration Properties > General > Configuration Type, set to "Dynamic Library (.dll)". Click "Apply".
 <img width="1171" height="801" alt="Screenshot 2026-04-02 200557" src="https://github.com/user-attachments/assets/d3099f78-efd0-408c-93e3-732bac1a63e5" />
