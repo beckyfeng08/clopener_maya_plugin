@@ -1,5 +1,4 @@
-#ifndef HELLOMAYA_H
-#define HELLOMAYA_H
+#pragma once
 #include <maya/MArgList.h>
 #include <maya/MObject.h>
 #include <maya/MGlobal.h>
@@ -11,9 +10,7 @@ class clopener : public MPxCommand
 {
 public:
 	clopener() {};
-	virtual MStatus doIt(const MArgList& args);
 	static void* creator();
 	static MSyntax newSyntax();
 
 };
-#endif

@@ -103,7 +103,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NT_PLUGIN</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>C:\Users\fengl\Desktop\cis6600\helloMaya\eigen-3.4.1;C:\Users\fengl\Desktop\cis6600\helloMaya\libigl\include;C:\Program Files\Autodesk\Maya2024\include</AdditionalIncludeDirectories>
     </ClCompile>
@@ -121,7 +121,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
@@ -130,10 +130,28 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="hello_maya.h" />
+    <ClInclude Include="..\..\clopenercpp\include\all_boundary_loop.h" />
+    <ClInclude Include="..\..\clopenercpp\include\collapse_edges.h" />
+    <ClInclude Include="..\..\clopenercpp\include\equalize_valences.h" />
+    <ClInclude Include="..\..\clopenercpp\include\remesh_botsch.h" />
+    <ClInclude Include="..\..\clopenercpp\include\split_edges.h" />
+    <ClInclude Include="..\..\clopenercpp\include\split_edges_until_bound.h" />
+    <ClInclude Include="..\..\clopenercpp\include\tangential_relaxation.h" />
+    <ClInclude Include="clopener_cmd.h" />
+    <ClInclude Include="clopener_node.h" />
+    <ClInclude Include="clopener_plugin.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="hello_maya.cpp" />
+    <ClCompile Include="..\..\clopenercpp\include\all_boundary_loop.cpp" />
+    <ClCompile Include="..\..\clopenercpp\include\collapse_edges.cpp" />
+    <ClCompile Include="..\..\clopenercpp\include\equalize_valences.cpp" />
+    <ClCompile Include="..\..\clopenercpp\include\remesh_botsch.cpp" />
+    <ClCompile Include="..\..\clopenercpp\include\split_edges.cpp" />
+    <ClCompile Include="..\..\clopenercpp\include\split_edges_until_bound.cpp" />
+    <ClCompile Include="..\..\clopenercpp\include\tangential_relaxation.cpp" />
+    <ClCompile Include="clopener_cmd.cpp" />
+    <ClCompile Include="clopener_node.cpp" />
+    <ClCompile Include="clopener_plugin.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
