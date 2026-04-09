@@ -2,8 +2,8 @@
 //#include "clopener.h"
 
 #include <maya/MPxCommand.h>
-#include <maya/MStatus.h>    // <--- needed for MStatus
-#include <maya/MArgList.h>   // <--- needed for MArgList
+#include <maya/MStatus.h> 
+#include <maya/MArgList.h> 
 #include <string>
 
 class clopenercmd : public MPxCommand

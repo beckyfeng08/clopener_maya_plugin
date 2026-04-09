@@ -13,39 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="include">
-      <UniqueIdentifier>{b3372ab5-ee1d-4ba7-b5a4-713a561b8859}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="clopener_plugin.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="clopener_cmd.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\clopenercpp\include\collapse_edges.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\clopenercpp\include\equalize_valences.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\clopenercpp\include\remesh_botsch.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\clopenercpp\include\split_edges.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\clopenercpp\include\split_edges_until_bound.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\clopenercpp\include\tangential_relaxation.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\clopenercpp\include\all_boundary_loop.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="clopener_node.h">
+    <ClInclude Include="clopenercmd.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -53,31 +26,7 @@
     <ClCompile Include="clopener_plugin.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="clopener_cmd.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\clopenercpp\include\equalize_valences.cpp">
-      <Filter>include</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\clopenercpp\include\remesh_botsch.cpp">
-      <Filter>include</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\clopenercpp\include\split_edges.cpp">
-      <Filter>include</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\clopenercpp\include\split_edges_until_bound.cpp">
-      <Filter>include</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\clopenercpp\include\tangential_relaxation.cpp">
-      <Filter>include</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\clopenercpp\include\all_boundary_loop.cpp">
-      <Filter>include</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\clopenercpp\include\collapse_edges.cpp">
-      <Filter>include</Filter>
-    </ClCompile>
-    <ClCompile Include="clopener_node.cpp">
+    <ClCompile Include="clopenercmd.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

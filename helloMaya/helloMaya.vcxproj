@@ -130,27 +130,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\clopenercpp\include\all_boundary_loop.h" />
-    <ClInclude Include="..\..\clopenercpp\include\collapse_edges.h" />
-    <ClInclude Include="..\..\clopenercpp\include\equalize_valences.h" />
-    <ClInclude Include="..\..\clopenercpp\include\remesh_botsch.h" />
-    <ClInclude Include="..\..\clopenercpp\include\split_edges.h" />
-    <ClInclude Include="..\..\clopenercpp\include\split_edges_until_bound.h" />
-    <ClInclude Include="..\..\clopenercpp\include\tangential_relaxation.h" />
-    <ClInclude Include="clopener_cmd.h" />
-    <ClInclude Include="clopener_node.h" />
+    <ClInclude Include="clopenercmd.h" />
     <ClInclude Include="clopener_plugin.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\clopenercpp\include\all_boundary_loop.cpp" />
-    <ClCompile Include="..\..\clopenercpp\include\collapse_edges.cpp" />
-    <ClCompile Include="..\..\clopenercpp\include\equalize_valences.cpp" />
-    <ClCompile Include="..\..\clopenercpp\include\remesh_botsch.cpp" />
-    <ClCompile Include="..\..\clopenercpp\include\split_edges.cpp" />
-    <ClCompile Include="..\..\clopenercpp\include\split_edges_until_bound.cpp" />
-    <ClCompile Include="..\..\clopenercpp\include\tangential_relaxation.cpp" />
-    <ClCompile Include="clopener_cmd.cpp" />
-    <ClCompile Include="clopener_node.cpp" />
+    <ClCompile Include="clopenercmd.cpp" />
     <ClCompile Include="clopener_plugin.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
