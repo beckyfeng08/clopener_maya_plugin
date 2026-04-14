@@ -82,7 +82,7 @@ EXPORT MStatus initializePlugin(MObject obj)
                 return;
             }
 
-            string $faceStr = stringArrayToString($faces, ", ");
+            string $faceStr = stringArrayToString($faces, " ");;
             textFieldButtonGrp -e -text $faceStr clopenerFaceField;
         }
 
