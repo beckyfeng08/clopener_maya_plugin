@@ -21,12 +21,51 @@
     <ClInclude Include="clopenercmd.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="closing_flow.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="closing_flow_helpers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="closing_flow_types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="per_face_prin_curvature.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="clopener_plugin.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="clopenercmd.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\remesh_botsch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\collapse_edges.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\equalize_valences.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\split_edges.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\split_edges_until_bound.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\tangential_relaxation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="closing_flow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="closing_flow_helpers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="per_face_prin_curvature.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

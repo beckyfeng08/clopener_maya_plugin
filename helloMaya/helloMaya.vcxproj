@@ -105,7 +105,8 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\fengl\Desktop\cis6600\helloMaya\eigen-3.4.1;C:\Users\fengl\Desktop\cis6600\helloMaya\libigl\include;C:\Program Files\Autodesk\Maya2024\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\fengl\Desktop\cis6600\helloMaya\include;C:\Users\fengl\Desktop\cis6600\helloMaya\eigen-3.4.1;C:\Users\fengl\Desktop\cis6600\helloMaya\libigl\include;C:\Program Files\Autodesk\Maya2024\include</AdditionalIncludeDirectories>
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -132,10 +133,23 @@
   <ItemGroup>
     <ClInclude Include="clopenercmd.h" />
     <ClInclude Include="clopener_plugin.h" />
+    <ClInclude Include="closing_flow.h" />
+    <ClInclude Include="closing_flow_helpers.h" />
+    <ClInclude Include="closing_flow_types.h" />
+    <ClInclude Include="per_face_prin_curvature.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\include\collapse_edges.cpp" />
+    <ClCompile Include="..\include\equalize_valences.cpp" />
+    <ClCompile Include="..\include\remesh_botsch.cpp" />
+    <ClCompile Include="..\include\split_edges.cpp" />
+    <ClCompile Include="..\include\split_edges_until_bound.cpp" />
+    <ClCompile Include="..\include\tangential_relaxation.cpp" />
     <ClCompile Include="clopenercmd.cpp" />
     <ClCompile Include="clopener_plugin.cpp" />
+    <ClCompile Include="closing_flow.cpp" />
+    <ClCompile Include="closing_flow_helpers.cpp" />
+    <ClCompile Include="per_face_prin_curvature.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

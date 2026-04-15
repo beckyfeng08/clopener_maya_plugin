@@ -1,10 +1,15 @@
-#include "clopenercmd.h"
+﻿#include "clopenercmd.h"
 
 #include <maya/MArgList.h>
 #include <maya/MGlobal.h>
 #include <maya/MStringArray.h>
+#include <maya/MFnSet.h>
 #include <list>
 #include <sstream>
+#include <iostream>
+
+#include "remesh_botsch.h"
+
 clopenercmd::clopenercmd() : MPxCommand()
 {
 }
@@ -68,13 +73,105 @@ MStatus clopenercmd::doIt(const MArgList& argList)
 	MDagPath dagPath;
 	sel.getDagPath(0, dagPath);
 	//dagPath.extendToShape();
+
    
 	// render mesh with new geometry
 	Eigen::MatrixXd V = getMeshVertices(dagPath);
 	Eigen::MatrixXi F = getMeshFaces(dagPath);
 	MGlobal::displayInfo("Vertices: " + MString() + V.rows());
 	MGlobal::displayInfo("Triangles: " + MString() + F.rows());
-    
+
+	Eigen::VectorXd target = Eigen::VectorXd::Constant(V.rows(), edgelen);
+	bool project = false;
+
+	remesh_botsch(V, F, target, iterations, project);
+
+	MGlobal::displayInfo("Vertices: " + MString() + V.rows()); // remeshed
+	MGlobal::displayInfo("Triangles: " + MString() + F.rows());
+	
+	//status = createNewMesh(V, F, dagPath);
+	
+	// MESH CREATION GIVEN EIGEN VALUES
+	MPointArray points;
+	points.setLength(V.rows());
+
+	for (int i = 0; i < V.rows(); i++) {
+		points[i] = MPoint(V(i, 0), V(i, 1), V(i, 2));
+	}
+	MIntArray polygonCounts;
+	MIntArray polygonConnects;
+
+	int numFaces = F.rows();
+
+	polygonCounts.setLength(numFaces);
+	polygonConnects.setLength(numFaces * 3);
+
+	for (int i = 0; i < numFaces; i++) {
+		polygonCounts[i] = 3; // triangles
+
+		polygonConnects[3 * i + 0] = F(i, 0);
+		polygonConnects[3 * i + 1] = F(i, 1);
+		polygonConnects[3 * i + 2] = F(i, 2);
+	}
+
+
+	// create the new mesh object
+	MObject newMeshObj = MFnMesh().create(
+		V.rows(),
+		numFaces,
+		points,
+		polygonCounts,
+		polygonConnects
+	);
+
+	MFnMesh newMeshFn(newMeshObj); // rebind
+
+	// assign new mesh to initialShadingGroup for it to be visible
+	MObjectArray sets, comps;
+	MFnMesh oldMeshFn(dagPath);
+	oldMeshFn.getConnectedSetsAndMembers(0, sets, comps, true);
+
+	if (sets.length() > 0) {
+		MFnSet fnSet(sets[0]);
+		fnSet.addMember(newMeshObj);
+	}
+
+	// ATTEMPT TO HARDEN EDGES idk man this doesn't work
+	// Unlock all vertex normals
+	// Recompute normals for the new mesh
+	//MIntArray vertexList;
+	//int numVerts = newMeshFn.numVertices();
+
+	//vertexList.setLength(numVerts);
+	//for (int i = 0; i < numVerts; i++) {
+	//	vertexList[i] = i;
+	//}
+
+
+	//newMeshFn.unlockVertexNormals(vertexList);
+
+	// 1. Harden everything
+	/*for (int i = 0; i < newMeshFn.numEdges(); i++) {
+		newMeshFn.setEdgeSmoothing(i, false);
+	}
+
+	newMeshFn.cleanupEdgeSmoothing();
+	newMeshFn.updateSurface();*/
+
+
+	// Select new mesh only
+	//MGlobal::clearSelectionList();
+	////MSelectionList sel;
+	//sel.add(newMeshObj);
+	//MGlobal::setActiveSelectionList(sel);
+
+	//// Apply hard edges
+	//MString cmd = "polySoftEdge -a 0 -ch 1 " + newMeshFn.name() + ";";
+	//MGlobal::clearSelectionList();
+	//MGlobal::executeCommand(cmd);
+
+	MGlobal::displayInfo("end");
+
 	return MS::kSuccess;
 }
 
@@ -119,4 +216,14 @@ clopenercmd::getMeshFaces(const MDagPath& meshDagPath) {
 	}
 
 	return F;
+}
+
+MStatus
+clopenercmd::createNewMesh(Eigen::MatrixXd V, Eigen::MatrixXi F, const MDagPath& meshDagPath) { // for some reason this doesn't output a mesh onto the viewport?
+	MStatus status;
+
+	// transfer over eigen data to maya data
+	
+	
+	return MS::kSuccess;
 }
