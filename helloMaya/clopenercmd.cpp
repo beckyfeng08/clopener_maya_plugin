@@ -8,7 +8,7 @@
 #include <sstream>
 #include <iostream>
 
-#include "remesh_botsch.h"
+#include "closing_flow.h"
 
 clopenercmd::clopenercmd() : MPxCommand()
 {
@@ -23,6 +23,7 @@ MStatus clopenercmd::doIt(const MArgList& argList)
 {
     MStatus status;
 
+	// set stuff to have stuff
 	int iterations = 1;
 	double edgelen = 0.5;
 	double radius = 0.5;
@@ -47,10 +48,18 @@ MStatus clopenercmd::doIt(const MArgList& argList)
 			radius = argList.asDouble(i + 1, &status);
 		}
 		else if (arg == "-o") {
-			isOpen = (argList.asInt(i + 1, &status) == 1);
+			isOpen = false;
+
+			if (argList.asInt(i + 1, &status) == 1) {
+				isOpen == true;
+			}
 		}
 		else if (arg == "-d") {
-			isMesh = (argList.asInt(i + 1, &status) == 1);
+			isMesh = false;
+
+			if (argList.asInt(i + 1, &status) == 1) {
+				isMesh == true;
+			}
 		}
 		else if (arg == "-m") {
 			mesh = argList.asString(i + 1, &status);
@@ -81,10 +90,30 @@ MStatus clopenercmd::doIt(const MArgList& argList)
 	MGlobal::displayInfo("Vertices: " + MString() + V.rows());
 	MGlobal::displayInfo("Triangles: " + MString() + F.rows());
 
-	Eigen::VectorXd target = Eigen::VectorXd::Constant(V.rows(), edgelen);
-	bool project = false;
+	// THE ACTUAL ALGORITHM
+	//Eigen::VectorXd target = Eigen::VectorXd::Constant(V.rows(), edgelen);
+	//bool project = false;
 
-	remesh_botsch(V, F, target, iterations, project);
+
+	//remesh_botsch(V, F, target, iterations, project);
+
+	ClosingFlowParams params; // create inputs to closing flow
+	params.maxiter = iterations;
+	params.h = edgelen;
+	params.bd = 1.0 /radius;
+	params.opening = false; // i think isOpen is buggy rn? hardcode
+
+
+	Eigen::MatrixXd Vout;
+	Eigen::MatrixXi Fout;
+	bool closed = closing_flow(V, F, params, Vout, Fout); // running closing operations on original vertices and faces
+
+	if (!closed) {
+		std::cerr << "closing_flow failed\n";
+		return MS::kFailure;
+	}
+	V = std::move(Vout);
+	F = std::move(Fout);
 
 	MGlobal::displayInfo("Vertices: " + MString() + V.rows()); // remeshed
 	MGlobal::displayInfo("Triangles: " + MString() + F.rows());

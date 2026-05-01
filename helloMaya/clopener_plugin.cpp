@@ -140,8 +140,9 @@ EXPORT MStatus initializePlugin(MObject obj)
                 - label "Radius"
                 - field true
                 - minValue 0.001
-                - maxValue 10
-                - value 0
+                - maxValue 1
+                - value 0.2
+                 -precision 3
                 - columnAlign3 "center" "center" "center"
                 clopenerRadius;
 
@@ -151,8 +152,9 @@ EXPORT MStatus initializePlugin(MObject obj)
                 - label "Edge Length"
                 - field true
                 - minValue 0.0
-                - maxValue 2.0
+                - maxValue 1.0
                 - value 0.5
+                -precision 2
                 - columnAlign3 "center" "center" "center"
                 clopenerEdgeLength;
 
