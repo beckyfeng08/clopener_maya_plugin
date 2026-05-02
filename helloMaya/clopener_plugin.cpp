@@ -40,50 +40,51 @@ EXPORT MStatus initializePlugin(MObject obj)
 
     MString cmd;
     cmd = R"(
-       global proc clopenerToggleMode()
+      global proc clopenerToggleVertexField()
 {
-    int $mode = `radioButtonGrp -q -select clopenerSelectMode`;
-
-    if($mode == 1){
-        textFieldButtonGrp -e -enable true clopenerMeshField;
-        textFieldButtonGrp -e -enable false clopenerFaceField;
-    }
-    else{
-        textFieldButtonGrp -e -enable false clopenerMeshField;
-        textFieldButtonGrp -e -enable true clopenerFaceField;
-    }
+    int $useVerts = `checkBox -q -value clopenerUseVerts`;
+    textFieldButtonGrp -e -enable $useVerts clopenerVertexField;
 }
 
-global proc clopenerFillFaces()
+global proc clopenerFillVertices()
 {
-    string $faces[] = `filterExpand -sm 34`;
+    string $verts[] = `filterExpand -sm 31`;
 
-    if(size($faces) == 0){
-        warning "No faces selected";
+    if(size($verts) == 0){
+        warning "No vertices selected";
         return;
     }
 
     string $mesh = "";
     int $valid = 1;
 
-    for($f in $faces){
+    string $indices[];
+
+    for($v in $verts){
         string $parts[];
-        tokenize $f "." $parts;
+        tokenize $v "." $parts;
 
         if($mesh == "")
             $mesh = $parts[0];
 
         if($parts[0] != $mesh)
             $valid = 0;
+
+        // Extract index inside [ ]
+        string $idxParts[];
+        tokenize $parts[1] "[]" $idxParts;
+
+        // idxParts[1] should be the number
+        $indices[size($indices)] = $idxParts[1];
     }
 
     if(!$valid){
-        warning "Faces must belong to the same mesh";
+        warning "Vertices must belong to the same mesh";
         return;
     }
 
-    string $faceStr = stringArrayToString($faces, " ");
-    textFieldButtonGrp -e -text $faceStr clopenerFaceField;
+    string $displayStr = stringArrayToString($indices, " ");
+    textFieldButtonGrp -e -text $displayStr clopenerVertexField;
 }
 
 global proc openWindow()
@@ -97,17 +98,7 @@ global proc openWindow()
         -columnAlign "center"
         -columnAttach "both" 20;
 
-    // Selection mode (Mesh vs Faces)
-    text -label "Selection Mode" -align "center";
-    radioButtonGrp
-        -numberOfRadioButtons 2
-        -labelArray2 "Mesh" "Faces"
-        -select 1
-        -changeCommand "clopenerToggleMode"
-        -columnAlign2 "center" "center"
-        clopenerSelectMode;
-
-    // Mesh input
+    // Mesh input (REQUIRED)
     text -label "Input Mesh" -align "center";
     textFieldButtonGrp
         -label "Mesh"
@@ -116,16 +107,23 @@ global proc openWindow()
         -columnAlign3 "center" "center" "center"
         clopenerMeshField;
 
-    // Face selection
-    text -label "Selected Faces" -align "center";
-    textFieldButtonGrp 
-        -label "Faces"
-        -buttonLabel "Use Selected"
-        -buttonCommand "clopenerFillFaces() "
-        - columnAlign3 "center" "center" "center"
-        clopenerFaceField;
+    // Vertex toggle
+    checkBox
+        -label "Select Vertices"
+        -value 0
+        -changeCommand "clopenerToggleVertexField() "
+        clopenerUseVerts;
 
-    // Operation (Opening vs Closing) — independent
+    // Vertex input (OPTIONAL)
+    textFieldButtonGrp
+        - label "Vertices"
+        - buttonLabel "Use Selected"
+        - buttonCommand "clopenerFillVertices() "
+        - enable 0
+        - columnAlign3 "center" "center" "center"
+        clopenerVertexField;
+
+    // Operation
     text - label "Operation" - align "center";
     radioButtonGrp
         - numberOfRadioButtons 2
@@ -184,37 +182,43 @@ global proc openWindow()
 
     setParent ..;
 
-    clopenerToggleMode(); // initialize correct UI state
     showWindow clopenerWindow;
 }
 
 global proc processData()
 {
     int $iterations = `intSliderGrp - q - value clopenerIterations`;
-    float $edgelen = `floatSliderGrp - q - value clopenerEdgeLength`;
-    float $radius = `floatSliderGrp - q - value clopenerRadius`;
-    int $op = `radioButtonGrp - q - select clopenerOp`;               // 1=open, 2=close
-    int $mode = `radioButtonGrp - q - select clopenerSelectMode`;     // 1=mesh, 2=faces
-    string $mesh = `textFieldButtonGrp - q - text clopenerMeshField`;
-    string $faces = `textFieldButtonGrp - q - text clopenerFaceField`;
+        float $edgelen = `floatSliderGrp - q - value clopenerEdgeLength`;
+        float $radius = `floatSliderGrp - q - value clopenerRadius`;
+        int $op = `radioButtonGrp - q - select clopenerOp`;
+        int $useVerts = `checkBox - q - value clopenerUseVerts`;
 
-    print("Iterations: " + $iterations + "\n");
-    print("Edge Length: " + $edgelen + "\n");
-    print("Radius: " + $radius + "\n");
-    print("Operation (1=open,2=close): " + $op + "\n");
-    print("Selection Mode (1=mesh,2=faces): " + $mode + "\n");
+        string $mesh = `textFieldButtonGrp - q - text clopenerMeshField`;
+        string $verts = "";
+
+    if ($mesh == "") {
+        error "Mesh is required.";
+        return;
+    }
+
+    if ($useVerts) {
+        $verts = `textFieldButtonGrp - q - text clopenerVertexField`;
+            if ($verts == "") {
+                warning "Vertex mode enabled but no vertices provided.";
+            }
+    }
+
     print("Mesh: " + $mesh + "\n");
-    print("Faces: " + $faces + "\n");
+    print("Use Vertices: " + $useVerts + "\n");
+    print("Vertices: " + $verts + "\n");
 
-    // Pass BOTH independently
     clopenercmd
         - i $iterations
         - e $edgelen
         - r $radius
-        - o $op      // operation
-        - d $mode    // selection mode
+        - o $op
         - m $mesh
-        - f $faces;
+        - v $verts;
 }
 
 global proc addClopenerMenu()

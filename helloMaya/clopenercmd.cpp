@@ -28,12 +28,11 @@ MStatus clopenercmd::doIt(const MArgList& argList)
 	double edgelen = 0.03;
 	double radius = 0.12;
 	bool isOpen = false; // true = open operation, false = closing operation
-	bool isMesh = true; // true = selected mesh, false = selected faces
-	MStringArray faces;
+	MStringArray verts;
 	MString mesh = "";
 
 
-	// parse arguments
+
 	for (unsigned int i = 0; i < argList.length(); i++)
 	{
 		MString arg = argList.asString(i, &status);
@@ -56,23 +55,16 @@ MStatus clopenercmd::doIt(const MArgList& argList)
 
 			}
 		}
-		else if (arg == "-d") {
-			isMesh = false;
-
-			if (argList.asInt(i + 1, &status) == 1) {
-				isMesh = true;
-			}
-		}
 		else if (arg == "-m") {
 			mesh = argList.asString(i + 1, &status);
 		}
-		else if (arg == "-f") {
-			MString facesStr = argList.asString(i + 1, &status);
+		else if (arg == "-v") {
+			MString vertStr = argList.asString(i + 1, &status);
 
 			MStringArray tokens;
-			facesStr.split(' ', tokens);
+			vertStr.split(' ', tokens);
 
-			faces = tokens;
+			verts = tokens;
 		}
 	}
 
@@ -99,27 +91,17 @@ MStatus clopenercmd::doIt(const MArgList& argList)
 	params.h = edgelen;
 	params.bd = 1.0 /radius;
 	params.opening = isOpen;
+	// TODO: eventually ahve a params list of mesh vertices
 
 	Eigen::MatrixXd Vout;
 	Eigen::MatrixXi Fout;
-	// 
+
 
 	bool old = false;
 	bool closed = false;
 	if (old) {
 		closed = closing_flow(V, F, params, Vout, Fout); // running closing operations on original vertices and faces
 
-		if (!closed) {
-			std::cerr << "closing_flow failed\n";
-			return MS::kFailure;
-		}
-
-		V = std::move(Vout);
-		F = std::move(Fout);
-
-		MGlobal::displayInfo("Vertices: " + MString() + V.rows()); // remeshed
-		MGlobal::displayInfo("Triangles: " + MString() + F.rows());
-		status = createNewMesh(V, F, dagPath);
 	} else {
 		ClosingFlow cf = ClosingFlow(V, F, params);
 		for (int i = 0; i < iterations; i++) {
@@ -133,19 +115,19 @@ MStatus clopenercmd::doIt(const MArgList& argList)
 			Fout = cf.current_F();
 			status = createNewMesh(Vout, Fout, dagPath);
 		}
-
-		if (!closed) {
-			std::cerr << "closing_flow failed\n";
-			return MS::kFailure;
-		}
-
-		V = std::move(Vout);
-		F = std::move(Fout);
-
-		MGlobal::displayInfo("Vertices: " + MString() + V.rows()); // remeshed
-		MGlobal::displayInfo("Triangles: " + MString() + F.rows());
 	}
-	
+
+	if (!closed) {
+		std::cerr << "closing_flow failed\n";
+		return MS::kFailure;
+	}
+
+	V = std::move(Vout);
+	F = std::move(Fout);
+
+	MGlobal::displayInfo("Vertices: " + MString() + V.rows()); // remeshed
+	MGlobal::displayInfo("Triangles: " + MString() + F.rows());
+	status = createNewMesh(V, F, dagPath);
 	
 	MGlobal::displayInfo("end");
 
