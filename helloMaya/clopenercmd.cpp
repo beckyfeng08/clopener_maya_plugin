@@ -104,10 +104,22 @@ MStatus clopenercmd::doIt(const MArgList& argList)
 	Eigen::MatrixXi Fout;
 	// 
 
-	old = true;
+	bool old = false;
 	bool closed = false;
 	if (old) {
 		closed = closing_flow(V, F, params, Vout, Fout); // running closing operations on original vertices and faces
+
+		if (!closed) {
+			std::cerr << "closing_flow failed\n";
+			return MS::kFailure;
+		}
+
+		V = std::move(Vout);
+		F = std::move(Fout);
+
+		MGlobal::displayInfo("Vertices: " + MString() + V.rows()); // remeshed
+		MGlobal::displayInfo("Triangles: " + MString() + F.rows());
+		status = createNewMesh(V, F, dagPath);
 	} else {
 		ClosingFlow cf = ClosingFlow(V, F, params);
 		for (int i = 0; i < iterations; i++) {
@@ -119,20 +131,20 @@ MStatus clopenercmd::doIt(const MArgList& argList)
 			// show mesh, create new maya mesh object essentially
 			Vout = cf.current_V();
 			Fout = cf.current_F();
-			status = createNewMesh(V, F, dagPath);
+			status = createNewMesh(Vout, Fout, dagPath);
 		}
-	}
-	
-	if (!closed) {
-		std::cerr << "closing_flow failed\n";
-		return MS::kFailure;
-	}
 
-	V = std::move(Vout);
-	F = std::move(Fout);
+		if (!closed) {
+			std::cerr << "closing_flow failed\n";
+			return MS::kFailure;
+		}
 
-	MGlobal::displayInfo("Vertices: " + MString() + V.rows()); // remeshed
-	MGlobal::displayInfo("Triangles: " + MString() + F.rows());
+		V = std::move(Vout);
+		F = std::move(Fout);
+
+		MGlobal::displayInfo("Vertices: " + MString() + V.rows()); // remeshed
+		MGlobal::displayInfo("Triangles: " + MString() + F.rows());
+	}
 	
 	
 	MGlobal::displayInfo("end");
