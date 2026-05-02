@@ -24,9 +24,9 @@ MStatus clopenercmd::doIt(const MArgList& argList)
     MStatus status;
 
 	// set stuff to have stuff
-	int iterations = 1;
-	double edgelen = 0.5;
-	double radius = 0.5;
+	int iterations = 5;
+	double edgelen = 0.03;
+	double radius = 0.12;
 	bool isOpen = false; // true = open operation, false = closing operation
 	bool isMesh = true; // true = selected mesh, false = selected faces
 	MStringArray faces;
@@ -49,16 +49,18 @@ MStatus clopenercmd::doIt(const MArgList& argList)
 		}
 		else if (arg == "-o") {
 			isOpen = false;
+			int val = argList.asInt(i + 1, &status);
 
-			if (argList.asInt(i + 1, &status) == 1) {
-				isOpen == true;
+			if (val == 1) {
+				isOpen = true;
+
 			}
 		}
 		else if (arg == "-d") {
 			isMesh = false;
 
 			if (argList.asInt(i + 1, &status) == 1) {
-				isMesh == true;
+				isMesh = true;
 			}
 		}
 		else if (arg == "-m") {
@@ -101,7 +103,8 @@ MStatus clopenercmd::doIt(const MArgList& argList)
 	params.maxiter = iterations;
 	params.h = edgelen;
 	params.bd = 1.0 /radius;
-	params.opening = false; // i think isOpen is buggy rn? hardcode
+	params.opening = isOpen;
+
 
 
 	Eigen::MatrixXd Vout;
