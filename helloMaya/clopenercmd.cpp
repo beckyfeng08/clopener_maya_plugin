@@ -92,12 +92,7 @@ MStatus clopenercmd::doIt(const MArgList& argList)
 	MGlobal::displayInfo("Vertices: " + MString() + V.rows());
 	MGlobal::displayInfo("Triangles: " + MString() + F.rows());
 
-	// THE ACTUAL ALGORITHM
-	//Eigen::VectorXd target = Eigen::VectorXd::Constant(V.rows(), edgelen);
-	//bool project = false;
-
-
-	//remesh_botsch(V, F, target, iterations, project);
+	// ACTUAL CLOSING FLOW CALL
 
 	ClosingFlowParams params; // create inputs to closing flow
 	params.maxiter = iterations;
@@ -105,103 +100,53 @@ MStatus clopenercmd::doIt(const MArgList& argList)
 	params.bd = 1.0 /radius;
 	params.opening = isOpen;
 
-
-
 	Eigen::MatrixXd Vout;
 	Eigen::MatrixXi Fout;
-	bool closed = closing_flow(V, F, params, Vout, Fout); // running closing operations on original vertices and faces
+	// 
 
-	if (!closed) {
-		std::cerr << "closing_flow failed\n";
-		return MS::kFailure;
+	bool old = false;
+	bool closed = false;
+	if (old) {
+		closed = closing_flow(V, F, params, Vout, Fout); // running closing operations on original vertices and faces
+
+		if (!closed) {
+			std::cerr << "closing_flow failed\n";
+			return MS::kFailure;
+		}
+
+		V = std::move(Vout);
+		F = std::move(Fout);
+
+		MGlobal::displayInfo("Vertices: " + MString() + V.rows()); // remeshed
+		MGlobal::displayInfo("Triangles: " + MString() + F.rows());
+		status = createNewMesh(V, F, dagPath);
+	} else {
+		ClosingFlow cf = ClosingFlow(V, F, params);
+		for (int i = 0; i < iterations; i++) {
+			if (!cf.step()) {
+				std::cerr << "Flow converged at iteration " << i << "\n";
+				closed = true;
+				break;
+			}
+			// show mesh, create new maya mesh object essentially
+			Vout = cf.current_V();
+			Fout = cf.current_F();
+			status = createNewMesh(Vout, Fout, dagPath);
+		}
+
+		if (!closed) {
+			std::cerr << "closing_flow failed\n";
+			return MS::kFailure;
+		}
+
+		V = std::move(Vout);
+		F = std::move(Fout);
+
+		MGlobal::displayInfo("Vertices: " + MString() + V.rows()); // remeshed
+		MGlobal::displayInfo("Triangles: " + MString() + F.rows());
 	}
-	V = std::move(Vout);
-	F = std::move(Fout);
-
-	MGlobal::displayInfo("Vertices: " + MString() + V.rows()); // remeshed
-	MGlobal::displayInfo("Triangles: " + MString() + F.rows());
 	
-	//status = createNewMesh(V, F, dagPath);
 	
-	// MESH CREATION GIVEN EIGEN VALUES
-	MPointArray points;
-	points.setLength(V.rows());
-
-	for (int i = 0; i < V.rows(); i++) {
-		points[i] = MPoint(V(i, 0), V(i, 1), V(i, 2));
-	}
-	MIntArray polygonCounts;
-	MIntArray polygonConnects;
-
-	int numFaces = F.rows();
-
-	polygonCounts.setLength(numFaces);
-	polygonConnects.setLength(numFaces * 3);
-
-	for (int i = 0; i < numFaces; i++) {
-		polygonCounts[i] = 3; // triangles
-
-		polygonConnects[3 * i + 0] = F(i, 0);
-		polygonConnects[3 * i + 1] = F(i, 1);
-		polygonConnects[3 * i + 2] = F(i, 2);
-	}
-
-
-	// create the new mesh object
-	MObject newMeshObj = MFnMesh().create(
-		V.rows(),
-		numFaces,
-		points,
-		polygonCounts,
-		polygonConnects
-	);
-
-	MFnMesh newMeshFn(newMeshObj); // rebind
-
-	// assign new mesh to initialShadingGroup for it to be visible
-	MObjectArray sets, comps;
-	MFnMesh oldMeshFn(dagPath);
-	oldMeshFn.getConnectedSetsAndMembers(0, sets, comps, true);
-
-	if (sets.length() > 0) {
-		MFnSet fnSet(sets[0]);
-		fnSet.addMember(newMeshObj);
-	}
-
-	// ATTEMPT TO HARDEN EDGES idk man this doesn't work
-	// Unlock all vertex normals
-	// Recompute normals for the new mesh
-	//MIntArray vertexList;
-	//int numVerts = newMeshFn.numVertices();
-
-	//vertexList.setLength(numVerts);
-	//for (int i = 0; i < numVerts; i++) {
-	//	vertexList[i] = i;
-	//}
-
-
-	//newMeshFn.unlockVertexNormals(vertexList);
-
-	// 1. Harden everything
-	/*for (int i = 0; i < newMeshFn.numEdges(); i++) {
-		newMeshFn.setEdgeSmoothing(i, false);
-	}
-
-	newMeshFn.cleanupEdgeSmoothing();
-	newMeshFn.updateSurface();*/
-
-
-	// Select new mesh only
-	//MGlobal::clearSelectionList();
-	////MSelectionList sel;
-	//sel.add(newMeshObj);
-	//MGlobal::setActiveSelectionList(sel);
-
-	//// Apply hard edges
-	//MString cmd = "polySoftEdge -a 0 -ch 1 " + newMeshFn.name() + ";";
-	//MGlobal::clearSelectionList();
-	//MGlobal::executeCommand(cmd);
-
 	MGlobal::displayInfo("end");
 
 	return MS::kSuccess;
@@ -251,11 +196,53 @@ clopenercmd::getMeshFaces(const MDagPath& meshDagPath) {
 }
 
 MStatus
-clopenercmd::createNewMesh(Eigen::MatrixXd V, Eigen::MatrixXi F, const MDagPath& meshDagPath) { // for some reason this doesn't output a mesh onto the viewport?
+clopenercmd::createNewMesh(Eigen::MatrixXd V, Eigen::MatrixXi F, const MDagPath& dagPath) { // for some reason this doesn't output a mesh onto the viewport?
 	MStatus status;
 
-	// transfer over eigen data to maya data
 	
+	// MESH CREATION GIVEN EIGEN VALUES
+	MPointArray points;
+	points.setLength(V.rows());
+
+	for (int i = 0; i < V.rows(); i++) {
+		points[i] = MPoint(V(i, 0), V(i, 1), V(i, 2));
+	}
+	MIntArray polygonCounts;
+	MIntArray polygonConnects;
+
+	int numFaces = F.rows();
+
+	polygonCounts.setLength(numFaces);
+	polygonConnects.setLength(numFaces * 3);
+
+	for (int i = 0; i < numFaces; i++) {
+		polygonCounts[i] = 3; // triangles
+
+		polygonConnects[3 * i + 0] = F(i, 0);
+		polygonConnects[3 * i + 1] = F(i, 1);
+		polygonConnects[3 * i + 2] = F(i, 2);
+	}
+
+	// create the new mesh object
+	MObject newMeshObj = MFnMesh().create(
+		V.rows(),
+		numFaces,
+		points,
+		polygonCounts,
+		polygonConnects
+	);
+
+	MFnMesh newMeshFn(newMeshObj); // rebind
+
+	// assign new mesh to initialShadingGroup for it to be visible
+	MObjectArray sets, comps;
+	MFnMesh oldMeshFn(dagPath);
+	oldMeshFn.getConnectedSetsAndMembers(0, sets, comps, true);
+
+	if (sets.length() > 0) {
+		MFnSet fnSet(sets[0]);
+		fnSet.addMember(newMeshObj);
+	}
 	
 	return MS::kSuccess;
 }
