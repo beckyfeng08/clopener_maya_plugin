@@ -4,6 +4,9 @@
 #include <maya/MGlobal.h>
 #include <maya/MStringArray.h>
 #include <maya/MFnSet.h>
+#include <maya/MComputation.h>
+#include <maya/MProgressWindow.h>
+
 #include <list>
 #include <sstream>
 #include <iostream>
@@ -23,15 +26,17 @@ MStatus clopenercmd::doIt(const MArgList& argList)
 {
     MStatus status;
 
+
 	// set stuff to have stuff
 	int iterations = 5;
 	double edgelen = 0.03;
+	bool useRelative = false;
 	double radius = 0.12;
 	bool isOpen = false; // true = open operation, false = closing operation
-	MStringArray verts;
+	Eigen::VectorXi verts;
 	MString mesh = "";
 
-
+	// parsing args
 
 	for (unsigned int i = 0; i < argList.length(); i++)
 	{
@@ -43,6 +48,12 @@ MStatus clopenercmd::doIt(const MArgList& argList)
 		else if (arg == "-e") {
 			edgelen = argList.asDouble(i + 1, &status);
 		}
+		else if (arg == "-er") {
+			int val = argList.asInt(i + 1, &status);
+			if (val == 1) { // relative is chosen
+				useRelative = true; 
+			}
+		}
 		else if (arg == "-r") {
 			radius = argList.asDouble(i + 1, &status);
 		}
@@ -52,7 +63,6 @@ MStatus clopenercmd::doIt(const MArgList& argList)
 
 			if (val == 1) {
 				isOpen = true;
-
 			}
 		}
 		else if (arg == "-m") {
@@ -64,12 +74,37 @@ MStatus clopenercmd::doIt(const MArgList& argList)
 			MStringArray tokens;
 			vertStr.split(' ', tokens);
 
-			verts = tokens;
+			std::vector<int> temp;
+
+			for (unsigned int k = 0; k < tokens.length(); ++k)
+			{
+				if (tokens[k].length() > 0)
+					temp.push_back(tokens[k].asInt());
+			}
+
+			verts = Eigen::Map<Eigen::VectorXi>(temp.data(), temp.size());
 		}
 	}
 
-	// clopen algorithm, call clopener
 
+	MComputation computation; // this is here to check for user interruptions (pressing esc key)
+	computation.beginComputation();
+
+	// --- Setup progress bar
+	MProgressWindow::reserve();
+	MProgressWindow::setTitle("Running Clopener...");
+	MProgressWindow::setProgressRange(0, iterations);
+	MProgressWindow::setInterruptable(true);
+	MProgressWindow::setProgressStatus("Press Escape to stop...");
+
+	if (!MProgressWindow::startProgress())
+	{
+		MGlobal::displayError("Could not start progress window.");
+		computation.endComputation();
+		return MS::kFailure;
+	}
+
+	// clopen algorithm, call clopener
 	MSelectionList sel;
 	sel.add(mesh);
 
@@ -84,52 +119,63 @@ MStatus clopenercmd::doIt(const MArgList& argList)
 	MGlobal::displayInfo("Vertices: " + MString() + V.rows());
 	MGlobal::displayInfo("Triangles: " + MString() + F.rows());
 
-	// ACTUAL CLOSING FLOW CALL
-
+	// setting params
 	ClosingFlowParams params; // create inputs to closing flow
 	params.maxiter = iterations;
+	params.use_relative = useRelative;
+	params.frac_of_avg_edge = edgelen;
 	params.h = edgelen;
-	params.bd = 1.0 /radius;
+	params.bd = 1.0 / radius;
 	params.opening = isOpen;
-	// TODO: eventually ahve a params list of mesh vertices
-
+	params.selection = verts;
+	
 	Eigen::MatrixXd Vout;
 	Eigen::MatrixXi Fout;
 
-
-	bool old = false;
+	// ACTUAL CLOSING FLOW CALL
 	bool closed = false;
-	if (old) {
-		closed = closing_flow(V, F, params, Vout, Fout); // running closing operations on original vertices and faces
 
-	} else {
-		ClosingFlow cf = ClosingFlow(V, F, params);
-		for (int i = 0; i < iterations; i++) {
-			if (!cf.step()) {
-				std::cerr << "Flow converged at iteration " << i << "\n";
-				closed = true;
-				break;
-			}
-			// show mesh, create new maya mesh object essentially
-			Vout = cf.current_V();
-			Fout = cf.current_F();
-			status = createNewMesh(Vout, Fout, dagPath);
+	ClosingFlow cf = ClosingFlow(V, F, params);
+	for (int i = 0; i < iterations; i++) {
+
+		// --- Check for user cancel (ESC)
+		if (computation.isInterruptRequested() || MProgressWindow::isCancelled())
+		{
+			MGlobal::displayWarning("Operation cancelled by user.");
+			status = MS::kFailure;
+			break;
 		}
-	}
 
-	if (!closed) {
-		std::cerr << "closing_flow failed\n";
-		return MS::kFailure;
+		if (!cf.step()) {
+			std::cerr << "Flow converged at iteration " << i << "\n";
+			closed = true;
+			break;
+		}
+
+		// show mesh, create new maya mesh object essentially
+		Vout = cf.current_V();
+		Fout = cf.current_F();
+		status = createNewMesh(Vout, Fout, dagPath);
+
+		// --- Update progress (throttle updates!)
+		MProgressWindow::setProgress(i);
 	}
+	
 
 	V = std::move(Vout);
 	F = std::move(Fout);
 
 	MGlobal::displayInfo("Vertices: " + MString() + V.rows()); // remeshed
 	MGlobal::displayInfo("Triangles: " + MString() + F.rows());
-	status = createNewMesh(V, F, dagPath);
 	
-	MGlobal::displayInfo("end");
+	// --- Cleanup (VERY IMPORTANT)
+	MProgressWindow::endProgress();
+	computation.endComputation();
+
+	if (!closed) {
+		std::cerr << "closing_flow is not complete\n";
+		return MS::kFailure;
+	}
 
 	return MS::kSuccess;
 }

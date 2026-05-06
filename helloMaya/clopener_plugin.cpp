@@ -40,10 +40,19 @@ EXPORT MStatus initializePlugin(MObject obj)
 
     MString cmd;
     cmd = R"(
-      global proc clopenerToggleVertexField()
+global proc clopenerToggleVertexField()
 {
     int $useVerts = `checkBox -q -value clopenerUseVerts`;
     textFieldButtonGrp -e -enable $useVerts clopenerVertexField;
+}
+
+global proc clopenerToggleEdgeMode()
+{
+    int $mode = `radioButtonGrp -q -select clopenerEdgeMode`;
+
+    // 1 = Absolute, 2 = Relative
+    floatSliderGrp -e -enable ($mode == 1) clopenerEdgeLengthAbs;
+    floatSliderGrp -e -enable ($mode == 2) clopenerEdgeLengthRel;
 }
 
 global proc clopenerFillVertices()
@@ -133,28 +142,51 @@ global proc openWindow()
         clopenerOp;
 
     // Radius
-    text - label "Radius (sensitivity) " - align "center";
+    text - label "Radius (Intensity of Effect) " - align "center";
     floatSliderGrp
         - label "Radius"
         - field true
         - minValue 0.001
-        - maxValue 1
+        - maxValue 10
         - value 0.2
         - precision 3
         - columnAlign3 "center" "center" "center"
         clopenerRadius;
 
     // Target Edge Length
-    text - label "Target Edge Length" - align "center";
+text -label "Target Edge Length (Coarseness) " - align "center";
+
+    // Mode selection
+    radioButtonGrp
+        - numberOfRadioButtons 2
+        - labelArray2 "Absolute" "Relative (Fraction of Average Edge Length) "
+        - select 1
+        - changeCommand "clopenerToggleEdgeMode() "
+        - columnAlign2 "center" "center"
+        clopenerEdgeMode;
+
+    // Absolute edge length
     floatSliderGrp
-        - label "Edge Length"
+        - label "Absolute Length"
         - field true
-        - minValue 0.0
+        - minValue 0.001
+        - maxValue 2.0
+        - value 0.5
+        - precision 3
+        - columnAlign3 "center" "center" "center"
+        clopenerEdgeLengthAbs;
+
+    // Relative edge length (fraction)
+    floatSliderGrp
+        - label "Relative Fraction"
+        - field true
+        - minValue 0.01
         - maxValue 1.0
         - value 0.5
         - precision 2
+        - enable 0
         - columnAlign3 "center" "center" "center"
-        clopenerEdgeLength;
+        clopenerEdgeLengthRel;
 
     // Iterations
     text - label "Iterations" - align "center";
@@ -162,7 +194,7 @@ global proc openWindow()
         - label "Iterations"
         - field true
         - minValue 1
-        - maxValue 300
+        - maxValue 100
         - value 5
         - columnAlign3 "center" "center" "center"
         clopenerIterations;
@@ -188,8 +220,20 @@ global proc openWindow()
 global proc processData()
 {
     int $iterations = `intSliderGrp - q - value clopenerIterations`;
-        float $edgelen = `floatSliderGrp - q - value clopenerEdgeLength`;
-        float $radius = `floatSliderGrp - q - value clopenerRadius`;
+        int $edgeMode = `radioButtonGrp - q - select clopenerEdgeMode`;
+
+        float $edgelen;
+    int $useRelative = 0;
+
+    if ($edgeMode == 1) {
+        $edgelen = `floatSliderGrp - q - value clopenerEdgeLengthAbs`;
+            $useRelative = 0;
+    }
+    else {
+        $edgelen = `floatSliderGrp - q - value clopenerEdgeLengthRel`;
+            $useRelative = 1;
+    }
+    float $radius = `floatSliderGrp - q - value clopenerRadius`;
         int $op = `radioButtonGrp - q - select clopenerOp`;
         int $useVerts = `checkBox - q - value clopenerUseVerts`;
 
@@ -215,6 +259,7 @@ global proc processData()
     clopenercmd
         - i $iterations
         - e $edgelen
+        - er $useRelative
         - r $radius
         - o $op
         - m $mesh

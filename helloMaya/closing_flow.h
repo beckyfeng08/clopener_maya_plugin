@@ -10,8 +10,8 @@
 class ClosingFlow {
 public:
     ClosingFlow(const Eigen::MatrixXd& V_in,
-                const Eigen::MatrixXi& F_in,
-                const ClosingFlowParams& params);
+        const Eigen::MatrixXi& F_in,
+        const ClosingFlowParams& params);
 
     // Run one iteration. Returns true if the flow should continue,
     // false if it has converged, the active set is empty, or it was cancelled.
@@ -30,7 +30,7 @@ public:
     // Allow host to request early termination (e.g. Esc in Maya)
     void cancel() { converged_ = true; }
 
-    // Timing accessors (parity with original)
+    // Timing accessors
     double remesh_seconds_total() const { return remesh_seconds_total_; }
 
 private:
@@ -44,14 +44,21 @@ private:
     bool                     converged_ = false;
     int                      iter_ = 0;
     ClosingFlowParams        params_;
+    double                   avg_edge_;
     double                   remesh_seconds_total_ = 0.0;
+    // Selection in geometric form: original positions of user-selected vertices.
+    // We store positions instead of indices because remeshing destroys the
+    // original vertex indexing. On each iteration we test whether a current
+    // Vfull_ vertex lies near any of these positions.
+    Eigen::MatrixXd selection_positions_;     // (k, 3), empty if no selection
+    double          selection_tol_sq_ = 0.0;  // squared distance threshold
 };
 
 // Convenience wrapper that preserves the old API.
 bool closing_flow(const Eigen::MatrixXd& V_in,
-                  const Eigen::MatrixXi& F_in,
-                  const ClosingFlowParams& params,
-                  Eigen::MatrixXd& V_out,
-                  Eigen::MatrixXi& F_out);
+    const Eigen::MatrixXi& F_in,
+    const ClosingFlowParams& params,
+    Eigen::MatrixXd& V_out,
+    Eigen::MatrixXi& F_out);
 
 #endif
