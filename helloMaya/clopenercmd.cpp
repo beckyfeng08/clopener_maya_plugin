@@ -157,7 +157,8 @@ MStatus clopenercmd::doIt(const MArgList& argList)
 		Fout = cf.current_F();
 		status = createNewMesh(Vout, Fout, dagPath);
 
-		// --- Update progress (throttle updates!)
+		// refresh the GUI, and the loading bar
+		MGlobal::executeCommand("refresh -f");
 		MProgressWindow::setProgress(i);
 	}
 	
@@ -176,6 +177,8 @@ MStatus clopenercmd::doIt(const MArgList& argList)
 		std::cerr << "closing_flow is not complete\n";
 		return MS::kFailure;
 	}
+
+	//TODO: key visibility (one mesh, per frame)?
 
 	return MS::kSuccess;
 }
@@ -274,3 +277,4 @@ clopenercmd::createNewMesh(Eigen::MatrixXd V, Eigen::MatrixXi F, const MDagPath&
 	
 	return MS::kSuccess;
 }
+
