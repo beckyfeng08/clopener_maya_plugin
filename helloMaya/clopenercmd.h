@@ -27,5 +27,8 @@ public:
 
 	Eigen::MatrixXd getMeshVertices(const MDagPath& meshDagPath);
 	Eigen::MatrixXi getMeshFaces(const MDagPath& meshDagPath);
-    MStatus createNewMesh(Eigen::MatrixXd V, Eigen::MatrixXi F, const MDagPath& meshDagPath);
+    MStatus createNewMesh(Eigen::MatrixXd V, Eigen::MatrixXi F, const MDagPath& meshDagPath, int frame);
+    void keyVisibility(const MString& meshName,
+        int frame,
+        bool visible);
 };
