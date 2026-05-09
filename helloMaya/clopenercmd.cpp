@@ -1,11 +1,14 @@
 ﻿#include "clopenercmd.h"
-
-#include <maya/MArgList.h>
 #include <maya/MGlobal.h>
 #include <maya/MStringArray.h>
 #include <maya/MFnSet.h>
 #include <maya/MComputation.h>
 #include <maya/MProgressWindow.h>
+#include <maya/MFnAnimCurve.h>
+#include <maya/MPlug.h>
+#include <maya/MPlugArray.h>
+#include <maya/MTime.h>
+#include <maya/MFnDependencyNode.h>
 
 #include <list>
 #include <sstream>
@@ -155,11 +158,17 @@ MStatus clopenercmd::doIt(const MArgList& argList)
 		// show mesh, create new maya mesh object essentially
 		Vout = cf.current_V();
 		Fout = cf.current_F();
-		status = createNewMesh(Vout, Fout, dagPath);
+		status = createNewMesh(Vout, Fout, dagPath, i);
 
 		// refresh the GUI, and the loading bar
 		MGlobal::executeCommand("refresh -f");
 		MProgressWindow::setProgress(i);
+		if (computation.isInterruptRequested() || MProgressWindow::isCancelled())
+		{
+			MGlobal::displayWarning("Operation cancelled by user.");
+			status = MS::kFailure;
+			break;
+		}
 	}
 	
 
@@ -227,7 +236,7 @@ clopenercmd::getMeshFaces(const MDagPath& meshDagPath) {
 }
 
 MStatus
-clopenercmd::createNewMesh(Eigen::MatrixXd V, Eigen::MatrixXi F, const MDagPath& dagPath) { // for some reason this doesn't output a mesh onto the viewport?
+clopenercmd::createNewMesh(Eigen::MatrixXd V, Eigen::MatrixXi F, const MDagPath& dagPath, int frame) { // for some reason this doesn't output a mesh onto the viewport?
 	MStatus status;
 
 	
@@ -264,7 +273,7 @@ clopenercmd::createNewMesh(Eigen::MatrixXd V, Eigen::MatrixXi F, const MDagPath&
 	);
 
 	MFnMesh newMeshFn(newMeshObj); // rebind
-
+	
 	// assign new mesh to initialShadingGroup for it to be visible
 	MObjectArray sets, comps;
 	MFnMesh oldMeshFn(dagPath);
@@ -274,7 +283,41 @@ clopenercmd::createNewMesh(Eigen::MatrixXd V, Eigen::MatrixXi F, const MDagPath&
 		MFnSet fnSet(sets[0]);
 		fnSet.addMember(newMeshObj);
 	}
-	
-	return MS::kSuccess;
+	// key animation
+
+	MFnDagNode dagNode(newMeshObj);
+
+	MString shapeName = dagNode.name();
+	MString fullShapePath = dagNode.fullPathName();
+	if (frame > 0) {
+		keyVisibility(fullShapePath, frame - 1, false);
+	}
+	keyVisibility(fullShapePath, frame, true);
+	keyVisibility(fullShapePath, frame + 1, false);
+
+	MGlobal::displayInfo("Shape just created: " + dagNode.name());
+	return status;
 }
 
+void clopenercmd::keyVisibility(const MString& meshName,
+	int frame,
+	bool visible)
+{
+	MString cmd =
+		"setKeyframe -attribute visibility -t " +
+		MString() + frame +
+		" -v " +
+		MString() + (visible ? 1 : 0) +
+		" \"" +
+		meshName +
+		"\"";
+
+	MGlobal::executeCommand(cmd);
+
+	cmd.format(
+		"keyTangent -itt step -ott step \"^1s\"",
+		meshName
+	);
+
+	MGlobal::executeCommand(cmd);
+}
