@@ -16,7 +16,7 @@ Compile and build on Visual Studio 2022
 
 To clone:
 
-`git clone --recurse-submodules git@github.com:beckyfeng08/clopener_maya_plugin.git`
+`git clone --recurse-submodules https://github.com/beckyfeng08/clopener_maya_plugin.git`
 
 Checkout to libigl 2.4.0
 `cd clopener_maya_plugin; cd libigl; git checkout v2.4.0`
