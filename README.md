@@ -2,6 +2,16 @@
 
 Based on paper [Opening and Closing Surfaces SIGGRAPH Asia 2020 SILVIA SELLÁN, JACOB KESTEN, ANG YAN SHENG, ALEC JACOBSON](https://www.dgp.toronto.edu/projects/opening-and-closing-surfaces/)
 
+## Setup Instructions
+Specs: Any Windows computer (this plugin is tested on Windows 11, 64-bit operating system, x64-based processor)
+
+Be sure to have Autodesk Maya installed. This plugin has been tested on [Maya 2024](https://www.autodesk.com/asean/products/maya/overview?mkwid=s|pcrid||pkw|autodesk%20maya|pmt|e|pdv|c|slid||pgrid|1150090964140620|ptaid|kwd-71881408302037:loc-190|pid|&utm_medium=cpc&utm_source=bing&utm_campaign=&utm_term=autodesk%20maya&utm_content=s|pcrid||pkw|autodesk%20maya|pmt|e|pdv|c|slid||pgrid|1150090964140620|ptaid|kwd-71881408302037:loc-190|&msclkid=5aeebf2c4c2010b0e0e8d5289919ace7&gclsrc=3p.ds&&ef_id=:G:s&s_kwcid=AL!11172!3!!e!!o!!autodesk%20maya!590368747!1150090964140620) 
+
+## If you would like to use the plug-in as is, feel free to download the already built .mll file [here](https://github.com/beckyfeng08/clopener_maya_plugin/blob/main/helloMaya.mll):
+https://github.com/beckyfeng08/clopener_maya_plugin/blob/main/helloMaya.mll
+
+## To compile the code on your own
+
 Compile and build on Visual Studio 2022
 
 To clone:
