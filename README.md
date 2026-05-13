@@ -22,7 +22,24 @@ Checkout to libigl 2.4.0
 `cd clopener_maya_plugin; cd libigl; git checkout v2.4.0`
 
 ## How to build the plugin file 
+Double click on the helloMaya.sln to open the file in Visual Studio 2022.
 
+### Release mode
+Go to Project > helloMaya Properties. Change the Configuration to Release, adn Platform to x64.
+
+Under Configuration Properties > General, be sure your settings match this:
+
+<img width="592" height="410" alt="Screenshot 2026-05-13 160025" src="https://github.com/user-attachments/assets/668acf5f-8a7c-4d35-8037-dbfa35f00d35" />
+
+Under Configuration Properties > Advanced:
+
+<img width="597" height="405" alt="Screenshot 2026-05-13 160107" src="https://github.com/user-attachments/assets/83a26b57-c240-4425-b75f-562a35f30733" />
+
+Under C/C++ > General, under Additional Include Directories, add helloMaya\include, helloMaya\eigen-3.4.1, helloMaya\libigl\include, and whatever Maya version you are using's include directory. Hover over Additional Include Directories, click on the dropdown arrow, click Edit..., then click on the yellow icon on the top right corner of the pop up window to add a new directory like so:
+
+<img width="647" height="486" alt="Screenshot 2026-05-13 160628" src="https://github.com/user-attachments/assets/61db9fa9-573f-4808-aa82-30788a549014" />
+
+### Debug mode
 Open Visual Studio 2022, and open the project via its .sln file. Under the Solution Explorer, right click on "helloMaya", navigate to "Properties".
 Under Configuration Properties > General > Configuration Type, set to "Dynamic Library (.dll)". Click "Apply".
 <img width="1171" height="801" alt="Screenshot 2026-04-02 200557" src="https://github.com/user-attachments/assets/d3099f78-efd0-408c-93e3-732bac1a63e5" />
